@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-athena = { git = "https://github.com/xqhare/athena" }
+athena = { git = "https://github.com/xqhare/athena", features = ["process"] }
+areia = { git = "https://github.com/xqhare/areia" }
 hades = { git = "https://github.com/xqhare/hades" }
 horae = { git = "https://github.com/xqhare/horae" }
 nabu = { git = "https://github.com/xqhare/nabu" }
