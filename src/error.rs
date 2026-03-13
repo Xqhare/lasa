@@ -1,5 +1,6 @@
 pub type LasaResult<T> = std::result::Result<T, LasaError>;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum LasaError {
     EnvironmentError(String),
