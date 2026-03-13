@@ -10,7 +10,7 @@ source = "git+https://github.com/xqhare/areia#32f0ab3f7adc21b69590f8692c3b791977
 [[package]]
 name = "athena"
 version = "1.1.0"
-source = "git+https://github.com/xqhare/athena#6ad73efd15e3a0ef1710b64e4792e1751a43dc67"
+source = "git+https://github.com/xqhare/athena#671ebcddd50c5d54f88f57a4cf4d1cbeea493ccd"
 dependencies = [
  "libc",
 ]
@@ -25,8 +25,8 @@ dependencies = [
 
 [[package]]
 name = "horae"
-version = "1.1.0"
-source = "git+https://github.com/xqhare/horae#11b51db3131943567cc9976cbf8f5602d902f12c"
+version = "1.1.1"
+source = "git+https://github.com/xqhare/horae#3e45c62686111087a380f891d41310f210abbd87"
 
 [[package]]
 name = "lasa"
