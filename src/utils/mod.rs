@@ -1,11 +1,66 @@
 use std::process::Command;
 
+use nabu::{Array, Object, XffValue};
+
 use crate::{
     error::{LasaError, LasaResult},
-    parser::Parser,
+    parser::{Parser, Session, SessionEnd},
 };
 
-pub fn probe_journal(offset: i32) -> LasaResult<horae::Utc> {
+/// Probe journalctl for last reboot
+///
+/// Returns a vector of sessions
+///
+/// If no sessions are found, an error is returned.
+/// This means the output vector is guaranteed to have at least one element
+pub fn probe_last_reboot() -> LasaResult<Vec<Session>> {
+    // 1. Get last reboot output
+    let output = Command::new("last")
+        .arg("reboot")
+        .arg("-F")
+        .output()
+        .map_err(|e| LasaError::CommandExecution(e.to_string()))?;
+
+    let output_str = String::from_utf8_lossy(&output.stdout);
+    let mut sessions = Parser::parse_last_reboot(&output_str);
+
+    // 2. Identify the current boot and previous sessions
+    // Sessions are returned in reverse chronological order (newest first)
+    if sessions.is_empty() {
+        return Err(LasaError::NoData("last reboot output is empty".to_string()));
+    }
+
+    // Handle crashes and normalization
+    for (i, session) in sessions.iter_mut().enumerate() {
+        let offset = i as i32;
+        if let SessionEnd::Crash = session.session_end {
+            // Probe journal for last breath
+            if let Ok(utc_timestamp) = probe_journal(-(offset + 1)) {
+                session.session_end = SessionEnd::Recovered(utc_timestamp);
+            } else {
+                return Err(LasaError::JournalProbeFailed);
+            }
+        }
+    }
+
+    Ok(sessions)
+}
+
+pub fn new_year() -> (Object, u16) {
+    let mut year = Object::new();
+    year.insert("months", XffValue::from(Object::new()));
+    year.insert("yearly_sum_seconds", XffValue::Duration(0));
+    (year, 0)
+}
+
+pub fn new_month() -> (Object, u8) {
+    let mut month = Object::new();
+    month.insert("events", XffValue::from(Array::new()));
+    month.insert("montly_sum_seconds", XffValue::Duration(0));
+    (month, 0)
+}
+
+fn probe_journal(offset: i32) -> LasaResult<horae::Utc> {
     let output = Command::new("journalctl")
         .arg("-b")
         .arg(offset.to_string())
