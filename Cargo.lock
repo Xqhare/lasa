@@ -30,7 +30,7 @@ source = "git+https://github.com/xqhare/horae#3e45c62686111087a380f891d41310f210
 
 [[package]]
 name = "lasa"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "areia",
  "athena",
