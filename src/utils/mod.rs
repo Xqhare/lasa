@@ -37,9 +37,8 @@ pub fn probe_last_reboot() -> LasaResult<Vec<Session>> {
             // Probe journal for last breath
             if let Ok(utc_timestamp) = probe_journal(-(offset + 1)) {
                 session.session_end = SessionEnd::Recovered(utc_timestamp);
-            } else {
-                return Err(LasaError::JournalProbeFailed);
             }
+            // If probe fails, we just keep it as a Crash; we can't do better than that
         }
     }
 

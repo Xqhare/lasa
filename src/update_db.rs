@@ -15,25 +15,43 @@ pub fn update_database(env: &Environment) -> LasaResult<Object> {
     let history = db.get_mut("history").unwrap().as_object_mut().unwrap();
 
     for session in sessions.iter() {
-        let (date_time_down, event_type) = {
+        let (date_time_down, event_type, down_duration) = {
             match session.session_end {
                 SessionEnd::StillRunning => continue,
-                SessionEnd::Crash => unreachable!("Checked earlier"),
+                SessionEnd::Crash => {
+                    // We don't know the down time, so we just use the boot time
+                    // but we still check if we have already recorded this session
+                    if session.boot_start.unix_timestamp() <= old_last_recorded_boot {
+                        break;
+                    }
+                    (session.boot_start, "crash", std::time::Duration::ZERO)
+                }
                 SessionEnd::Shutdown(utc_timestamp) => {
                     if utc_timestamp.unix_timestamp() <= old_last_recorded_boot {
                         break;
                     }
-                    (utc_timestamp, "reboot")
+                    let duration = if session.boot_start.unix_timestamp() > utc_timestamp.unix_timestamp() {
+                        session.boot_start - utc_timestamp
+                    } else {
+                        std::time::Duration::ZERO
+                    };
+                    (utc_timestamp, "reboot", duration)
                 }
                 SessionEnd::Recovered(utc_timestamp) => {
                     if utc_timestamp.unix_timestamp() <= old_last_recorded_boot {
                         break;
                     }
-                    (utc_timestamp, "crash")
+                    let duration = if session.boot_start.unix_timestamp() > utc_timestamp.unix_timestamp() {
+                        session.boot_start - utc_timestamp
+                    } else {
+                        std::time::Duration::ZERO
+                    };
+                    (utc_timestamp, "crash", duration)
                 }
             }
         };
-        let down_duration = session.boot_start - date_time_down;
+
+        let down_duration: std::time::Duration = down_duration;
 
         let year = {
             if let Some(year) = history.get_mut(&date_time_down.date().year.to_string()) {

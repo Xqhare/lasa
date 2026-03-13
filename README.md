@@ -1,43 +1,58 @@
 # Lasa
 
-Lasa is a simple rust program to measure and log the system uptime.
+Lasa is a simple rust program to measure and log the system uptime. 
 
 ## Features
 
 - Measure and log the system uptime.
 - Writes statistics in both `.xff` and `.json` files.
-  - `.xff`: A single binary XFF file, perfect for programmatic access.
-  - `.json`: A single, prettyfied, JSON file, perfect for human consumption.
+  - `.xff`: A single binary XFF file, perfect for programmatic access (e.g. status bars).
+  - `.json`: A single, prettified JSON file, perfect for human consumption.
 - Only needs to run at startup.
 - Uses the `Batch` scheduler policy and a nice value of 19.
-  - This means that the program will only run during low system utilization.
+  - This means that the program will only run during low system utilization, being a "quiet attendant" to your system.
 - System crash aware
-  - Finds the last log before a system crash and uses that as the shutdown time.
+  - Finds the last log before a system crash by probing `journalctl` and uses that as the shutdown time to ensure accuracy.
+- Zero External Dependencies
+  - Adheres strictly to the Pantheon ecosystem rules, relying only on standard libraries and internal crates like `athena`, `horae`, and `nabu`.
 
 ## What data is saved?
 
-All data collected is stored locally in the directory of the program.
-Statistics are stored in the `Home` directory.
+The primary database is stored in the user's **Runtime Directory** (e.g. `/run/user/1000/`) for fast, ephemeral access without unnecessary disk I/O.
+The final statistics are stored in the user's **Home** directory.
 
 ### Provided Statistics
 
 In both the `.xff` and `.json` files, the following statistics are provided:
 
-- `all_time`: The total uptime of the system.
-  - **uptime_percent**: The percentage of time the system has been running.
-  - **total_downtime_seconds**: The total number of seconds the system has been down.
-- `current_year`: The current year.
-  - **year**: The current year.
-  - **uptime_percent**: The percentage of time the system has been running in the current year.
-- `current_month`: The current month.
-  - **month**: The current month.
-  - **uptime_percent**: The percentage of time the system has been running in the current month.
+```json
+{
+    "all_time": {
+        "total_downtime_seconds": 45120.0,
+        "uptime_percent": 98.42
+    },
+    "current_month": {
+        "month": 3,
+        "total_downtime_seconds": 944.0,
+        "uptime_percent": 97.5
+    },
+    "current_year": {
+        "total_downtime_seconds": 45120.0,
+        "uptime_percent": 99.1,
+        "year": 2026
+    }
+}
+```
 
 ## Usage
 
-Run the program at startup.
+Simply run the program at startup.
 
-Read the generated `.xff` and `.json` files for statistics.
+```bash
+lasa
+```
+
+Read the generated `.xff` and `.json` files in your home directory for statistics.
 
 ## Naming
 

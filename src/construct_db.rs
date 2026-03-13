@@ -45,15 +45,30 @@ fn make_history_object(sessions: &[Session]) -> Object {
     let (mut year, mut year_number): (Object, u16) = new_year();
 
     for session in sessions.iter() {
-        let (date_time_down, event_type) = {
+        let (date_time_down, event_type, down_duration) = {
             match session.session_end {
                 SessionEnd::StillRunning => continue,
-                SessionEnd::Crash => unreachable!("Checked earlier"),
-                SessionEnd::Shutdown(utc_timestamp) => (utc_timestamp, "reboot"),
-                SessionEnd::Recovered(utc_timestamp) => (utc_timestamp, "crash"),
+                SessionEnd::Crash => (session.boot_start, "crash", std::time::Duration::ZERO),
+                SessionEnd::Shutdown(utc_timestamp) => {
+                    let duration = if session.boot_start.unix_timestamp() > utc_timestamp.unix_timestamp() {
+                        session.boot_start - utc_timestamp
+                    } else {
+                        std::time::Duration::ZERO
+                    };
+                    (utc_timestamp, "reboot", duration)
+                }
+                SessionEnd::Recovered(utc_timestamp) => {
+                    let duration = if session.boot_start.unix_timestamp() > utc_timestamp.unix_timestamp() {
+                        session.boot_start - utc_timestamp
+                    } else {
+                        std::time::Duration::ZERO
+                    };
+                    (utc_timestamp, "crash", duration)
+                }
             }
         };
-        let down_duration = session.boot_start - date_time_down;
+
+        let down_duration: std::time::Duration = down_duration;
 
         if year_number == 0 {
             year_number = date_time_down.date().year;

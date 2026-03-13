@@ -44,7 +44,7 @@ fn main() -> LasaResult<()> {
     let stats_ptr = calculate_statistics(&mut db_obj);
     output_data(stats_ptr, &env)?;
 
-    if let Err(e) = write(env.data_file_path, XffValue::from(db_obj)) {
+    if let Err(e) = write(&env.data_file_path, XffValue::from(db_obj)) {
         return Err(LasaError::DataStorage(e.to_string()));
     }
     Ok(())
