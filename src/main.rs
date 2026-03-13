@@ -1,16 +1,19 @@
 use athena::process::{SchedulerPolicy, set_scheduler};
+use nabu::{XffValue, serde::write};
 
 use crate::{
     calc_stats::calculate_statistics,
     construct_db::construct_full_database,
     env::Environment,
     error::{LasaError, LasaResult},
+    output::output_data,
 };
 
 mod calc_stats;
 mod construct_db;
 mod env;
 mod error;
+mod output;
 mod parser;
 mod utils;
 
@@ -31,9 +34,11 @@ fn main() -> LasaResult<()> {
             std::fs::remove_file(&env.human_readable_output_path).unwrap();
         }
         let mut db_obj = construct_full_database()?;
-        calculate_statistics(&mut db_obj);
-        let output_data = todo!();
-        let write_data = todo!();
+        let stats_ptr = calculate_statistics(&mut db_obj);
+        output_data(stats_ptr, &env)?;
+        if let Err(e) = write(env.data_file_path, XffValue::from(db_obj)) {
+            return Err(LasaError::DataStorage(e.to_string()));
+        }
         Ok(())
     } else {
         run(&env)?;

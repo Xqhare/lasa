@@ -3,7 +3,10 @@ use std::time::Duration;
 use horae::Utc;
 use nabu::{Object, XffValue};
 
-pub fn calculate_statistics(db_obj: &mut Object) {
+/// Update the statistics in the database in place.
+///
+/// Returns a reference to the statistics object
+pub fn calculate_statistics(db_obj: &mut Object) -> &Object {
     let first_recorded_boot = get_first_boot(db_obj);
     let (all_time_sum, yearly_sum, montly_sum, today) = get_sums(db_obj);
 
@@ -53,6 +56,8 @@ pub fn calculate_statistics(db_obj: &mut Object) {
         "total_downtime_seconds",
         XffValue::from_duration_seconds(montly_sum.as_secs_f64()),
     );
+    let stats_ptr = db_obj.get("statistics").unwrap().as_object().unwrap();
+    stats_ptr
 }
 
 /// 1x 2x O(1) lookups

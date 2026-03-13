@@ -1,9 +1,8 @@
 use horae::Utc;
-use nabu::{Array, Object, XffValue, serde::write};
+use nabu::{Array, Object, XffValue};
 use std::process::Command;
 
 use crate::{
-    env::Environment,
     error::{LasaError, LasaResult},
     parser::{Parser, Session, SessionEnd},
     utils::probe_journal,
