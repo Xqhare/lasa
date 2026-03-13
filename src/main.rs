@@ -1,5 +1,5 @@
 use athena::process::{SchedulerPolicy, set_scheduler};
-use nabu::{XffValue, serde::write};
+use nabu::{Object, XffValue, serde::write};
 
 use crate::{
     calc_stats::calculate_statistics,
@@ -7,6 +7,7 @@ use crate::{
     env::Environment,
     error::{LasaError, LasaResult},
     output::output_data,
+    update_db::update_database,
 };
 
 mod calc_stats;
@@ -15,6 +16,7 @@ mod env;
 mod error;
 mod output;
 mod parser;
+mod update_db;
 mod utils;
 
 fn main() -> LasaResult<()> {
@@ -25,6 +27,7 @@ fn main() -> LasaResult<()> {
 
     let env = Environment::new()?;
 
+    let mut db_obj;
     if !env.data_file_path.exists() {
         // If the data file does not exist, first run; Clean up output files if they exist
         if env.output_file_path.exists() {
@@ -33,23 +36,16 @@ fn main() -> LasaResult<()> {
         if env.human_readable_output_path.exists() {
             std::fs::remove_file(&env.human_readable_output_path).unwrap();
         }
-        let mut db_obj = construct_full_database()?;
-        let stats_ptr = calculate_statistics(&mut db_obj);
-        output_data(stats_ptr, &env)?;
-        if let Err(e) = write(env.data_file_path, XffValue::from(db_obj)) {
-            return Err(LasaError::DataStorage(e.to_string()));
-        }
-        Ok(())
+        db_obj = construct_full_database()?;
     } else {
-        run(&env)?;
-        Ok(())
+        db_obj = update_database(&env)?;
     }
-}
 
-fn run(env: &Environment) -> LasaResult<()> {
-    let mut update_db_obj = todo!();
-    calculate_statistics(&mut update_db_obj);
-    let output_data = todo!();
-    let write_data = todo!();
+    let stats_ptr = calculate_statistics(&mut db_obj);
+    output_data(stats_ptr, &env)?;
+
+    if let Err(e) = write(env.data_file_path, XffValue::from(db_obj)) {
+        return Err(LasaError::DataStorage(e.to_string()));
+    }
     Ok(())
 }
