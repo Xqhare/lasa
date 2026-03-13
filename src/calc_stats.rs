@@ -23,7 +23,7 @@ pub fn calculate_statistics(db_obj: &mut Object) -> &Object {
     let this_month_up_perc =
         (1.0 - (montly_sum.as_secs_f64() / this_month_dur.as_secs_f64())) * 100.0;
 
-    let mut stats = db_obj
+    let stats = db_obj
         .get_mut("statistics")
         .unwrap()
         .as_object_mut()
