@@ -9,6 +9,7 @@ pub enum LasaError {
     Parsing(String),
     DataStorage(String),
     JournalProbeFailed,
+    NoData(String),
 }
 
 impl std::fmt::Display for LasaError {
@@ -21,6 +22,7 @@ impl std::fmt::Display for LasaError {
             LasaError::Parsing(err) => write!(f, "Parsing error: {}", err),
             LasaError::DataStorage(err) => write!(f, "Data storage error: {}", err),
             LasaError::JournalProbeFailed => write!(f, "Journal probe failed"),
+            LasaError::NoData(err) => write!(f, "No data: {}", err),
         }
     }
 }
