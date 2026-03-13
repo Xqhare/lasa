@@ -1,44 +1,15 @@
 use horae::Utc;
-use nabu::{Array, Object, XffValue};
-use std::process::Command;
+use nabu::{Object, XffValue};
 
 use crate::{
-    error::{LasaError, LasaResult},
-    parser::{Parser, Session, SessionEnd},
-    utils::probe_journal,
+    error::LasaResult,
+    parser::{Session, SessionEnd},
+    utils::{new_month, new_year, probe_last_reboot},
 };
 
 pub fn construct_full_database() -> LasaResult<Object> {
-    // 1. Get last reboot output
-    let output = Command::new("last")
-        .arg("reboot")
-        .arg("-F")
-        .output()
-        .map_err(|e| LasaError::CommandExecution(e.to_string()))?;
-
-    let output_str = String::from_utf8_lossy(&output.stdout);
-    let mut sessions = Parser::parse_last_reboot(&output_str);
-
-    // 2. Identify the current boot and previous sessions
-    // Sessions are returned in reverse chronological order (newest first)
-    if sessions.is_empty() {
-        return Err(LasaError::NoData("last reboot output is empty".to_string()));
-    }
-
-    // Handle crashes and normalization
-    for (i, session) in sessions.iter_mut().enumerate() {
-        let offset = i as i32; // This is a simplification; we need to calculate true boot offset
-
-        if let SessionEnd::Crash = session.session_end {
-            // Probe journal for last breath
-            if let Ok(utc_timestamp) = probe_journal(-(offset + 1)) {
-                session.session_end = SessionEnd::Recovered(utc_timestamp);
-            } else {
-                return Err(LasaError::JournalProbeFailed);
-            }
-        }
-    }
-
+    // At least one session guaranteed
+    let sessions = probe_last_reboot()?;
     let mut metadata = Object::new();
     let first_boot = sessions.last().unwrap().boot_start;
     metadata.insert(
@@ -63,6 +34,7 @@ pub fn construct_full_database() -> LasaResult<Object> {
     Ok(out)
 }
 
+#[allow(clippy::too_many_lines)]
 fn make_history_object(sessions: &[Session]) -> Object {
     let mut history: Object = Object::new();
 
@@ -191,18 +163,4 @@ fn make_stats_object() -> Object {
     statistics.insert("current_month", current_month_stats);
 
     statistics
-}
-
-fn new_year() -> (Object, u16) {
-    let mut year = Object::new();
-    year.insert("months", XffValue::from(Object::new()));
-    year.insert("yearly_sum_seconds", XffValue::Duration(0));
-    (year, 0)
-}
-
-fn new_month() -> (Object, u8) {
-    let mut month = Object::new();
-    month.insert("events", XffValue::from(Array::new()));
-    month.insert("montly_sum_seconds", XffValue::Duration(0));
-    (month, 0)
 }
