@@ -100,21 +100,25 @@ fn make_history_object(sessions: &[Session]) -> Object {
         );
         event.insert(
             "down_duration_sec",
-            XffValue::from_duration_seconds(down_duration.as_secs_f64()),
+            XffValue::from(down_duration.as_secs_f64()),
         );
         event.insert("type", XffValue::from(event_type));
 
         let new_sum_montly = month
             .get("montly_sum_seconds")
             .unwrap()
-            .into_duration_seconds()
+            .into_number()
+            .unwrap()
+            .into_f64()
             .unwrap()
             + down_duration.as_secs_f64();
 
         let new_sum_yearly = year
             .get("yearly_sum_seconds")
             .unwrap()
-            .into_duration_seconds()
+            .into_number()
+            .unwrap()
+            .into_f64()
             .unwrap()
             + down_duration.as_secs_f64();
 
@@ -126,11 +130,11 @@ fn make_history_object(sessions: &[Session]) -> Object {
             .push(XffValue::from(event));
         month.insert(
             "montly_sum_seconds",
-            XffValue::from_duration_seconds(new_sum_montly),
+            XffValue::from(new_sum_montly),
         );
         year.insert(
             "yearly_sum_seconds",
-            XffValue::from_duration_seconds(new_sum_yearly),
+            XffValue::from(new_sum_yearly),
         );
     }
 
@@ -155,21 +159,21 @@ fn make_stats_object() -> Object {
     all_time_stats.insert("uptime_percent", XffValue::from(0.0));
     all_time_stats.insert(
         "total_downtime_seconds",
-        XffValue::from_duration_seconds(0.0),
+        XffValue::from(0.0),
     );
     let mut current_year_stats = Object::new();
     current_year_stats.insert("year", XffValue::from(0));
     current_year_stats.insert("uptime_percent", XffValue::from(0.0));
     current_year_stats.insert(
         "total_downtime_seconds",
-        XffValue::from_duration_seconds(0.0),
+        XffValue::from(0.0),
     );
     let mut current_month_stats = Object::new();
     current_month_stats.insert("month", XffValue::from(0));
     current_month_stats.insert("uptime_percent", XffValue::from(0.0));
     current_month_stats.insert(
         "total_downtime_seconds",
-        XffValue::from_duration_seconds(0.0),
+        XffValue::from(0.0),
     );
 
     let mut statistics = Object::new();

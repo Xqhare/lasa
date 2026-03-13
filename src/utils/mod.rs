@@ -48,14 +48,14 @@ pub fn probe_last_reboot() -> LasaResult<Vec<Session>> {
 pub fn new_year() -> (Object, u16) {
     let mut year = Object::new();
     year.insert("months", XffValue::from(Object::new()));
-    year.insert("yearly_sum_seconds", XffValue::Duration(0));
+    year.insert("yearly_sum_seconds", XffValue::from(0.0));
     (year, 0)
 }
 
 pub fn new_month() -> (Object, u8) {
     let mut month = Object::new();
     month.insert("events", XffValue::from(Array::new()));
-    month.insert("montly_sum_seconds", XffValue::Duration(0));
+    month.insert("montly_sum_seconds", XffValue::from(0.0));
     (month, 0)
 }
 

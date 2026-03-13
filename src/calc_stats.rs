@@ -88,20 +88,24 @@ fn get_sums(db_obj: &Object) -> (Duration, Duration, Duration, Utc) {
             let all_time_sum = construct_all_time_sum(history);
             if let Some(year) = history.get(&current_year.to_string()) {
                 let year = year.as_object().unwrap();
-                let yearly_sum = year
+                let yearly_sum = Duration::from_secs_f64(year
                     .get("yearly_sum_seconds")
                     .unwrap()
-                    .into_std_duration()
-                    .unwrap();
+                    .into_number()
+                    .unwrap()
+                    .into_f64()
+                    .unwrap());
 
                 if let Some(month) = year.get(&current_month.to_string()) {
-                    let montly_sum = month
+                    let montly_sum = Duration::from_secs_f64(month
                         .as_object()
                         .unwrap()
                         .get("montly_sum_seconds")
                         .unwrap()
-                        .into_std_duration()
-                        .unwrap();
+                        .into_number()
+                        .unwrap()
+                        .into_f64()
+                        .unwrap());
                     (all_time_sum, yearly_sum, montly_sum)
                 } else {
                     // Today's month has no data - new month with no boot yet or something went terribly wrong
@@ -131,7 +135,7 @@ fn construct_all_time_sum(history: &Object) -> Duration {
     for (_key, value) in history.iter() {
         if let Some(year_obj) = value.as_object() {
             if let Some(sum) = year_obj.get("yearly_sum_seconds") {
-                sum_dur += sum.into_std_duration().unwrap();
+                sum_dur += Duration::from_secs_f64(sum.into_number().unwrap().into_f64().unwrap());
             }
         }
     }
