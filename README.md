@@ -59,23 +59,45 @@ If not:
 2. update database file with new information.
 3. update output with new uptime (calculated from new data)
 
-JSON just as an example for structure:
+JSON example for the `.data` structure:
 ```json
 {
+  "metadata": {
+    "first_recorded_boot": "2026-01-20T16:03:52Z",
+    "last_processed_boot": "2026-03-12T07:00:00Z"
+  },
+  "statistics": {
+    "all_time": { "uptime_percent": 98.42, "total_downtime_seconds": 45120 },
+    "current_year": { "year": 2026, "uptime_percent": 99.1 },
+    "current_month": { "month": 3, "uptime_percent": 97.5 },
+  },
+  "history": {
     "2026": {
-        "01": {
-            "downtimes": [
-                downtime0,
-                downtime1,
-                downtime2
-            ]
-            "sum": 69
-        }
+      "03": {
+        "events": [
+          {
+            "down_at": "2026-03-06T20:59:20Z",
+            "up_at": "2026-03-06T21:00:14Z",
+            "duration_seconds": 54,
+            "type": "clean"
+          },
+          {
+            "down_at": "2026-03-11T02:15:10Z",
+            "up_at": "2026-03-11T02:30:00Z",
+            "duration_seconds": 890,
+            "type": "crash_recovered"
+          }
+        ],
+        "monthly_sum_seconds": 944
+      }
     }
+  }
 }
-
 ```
 
-"sum" would be total downtime, updated each time a new downtime duration is added to the array.
-This enables: Month*days*hours*minutes*seconds - sum
-(because of leap days, just use horae again to construct the month duration)
+### Key Logic
+
+1. **Granularity:** Statistics are recalculated on every run for the current week, month, and year to provide a health trend indicator alongside the "all-time" record.
+2. **Anchor:** `first_recorded_boot` serves as the anchor for calculating the total "possible" uptime.
+3. **Crash Recovery:** Sessions marked as `crash_recovered` are identified via `journalctl` probing, ensuring power failures don't skew the data toward 0 downtime.
+4. **Calculations:** Uptime % is derived using `horae`: `(Elapsed_Seconds_In_Period - Sum_Of_Downtimes_In_Period) / Elapsed_Seconds_In_Period`.
