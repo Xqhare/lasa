@@ -30,9 +30,10 @@ fn main() -> LasaResult<()> {
         if env.human_readable_output_path.exists() {
             std::fs::remove_file(&env.human_readable_output_path).unwrap();
         }
-        construct_full_database(&env)?;
-        calculate_statistics(&env)?;
+        let mut db_obj = construct_full_database()?;
+        calculate_statistics(&mut db_obj);
         let output_data = todo!();
+        let write_data = todo!();
         Ok(())
     } else {
         run(&env)?;
@@ -41,8 +42,9 @@ fn main() -> LasaResult<()> {
 }
 
 fn run(env: &Environment) -> LasaResult<()> {
-    let update_database = todo!();
-    calculate_statistics(env);
+    let mut update_db_obj = todo!();
+    calculate_statistics(&mut update_db_obj);
     let output_data = todo!();
+    let write_data = todo!();
     Ok(())
 }
