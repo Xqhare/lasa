@@ -23,7 +23,7 @@ pub fn calculate_statistics(db_obj: &mut Object) -> &Object {
     let this_month_up_perc =
         (1.0 - (montly_sum.as_secs_f64() / this_month_dur.as_secs_f64())) * 100.0;
 
-    let stats = db_obj
+    let mut stats = db_obj
         .get_mut("statistics")
         .unwrap()
         .as_object_mut()
@@ -32,7 +32,7 @@ pub fn calculate_statistics(db_obj: &mut Object) -> &Object {
     all_time.insert("uptime_percent", XffValue::from(all_time_up_perc));
     all_time.insert(
         "total_downtime_seconds",
-        XffValue::from_duration_seconds(all_time_sum.as_secs_f64()),
+        XffValue::from(all_time_sum.as_secs_f64()),
     );
     let current_year = stats
         .get_mut("current_year")
@@ -43,7 +43,7 @@ pub fn calculate_statistics(db_obj: &mut Object) -> &Object {
     current_year.insert("uptime_percent", XffValue::from(this_year_up_perc));
     current_year.insert(
         "total_downtime_seconds",
-        XffValue::from_duration_seconds(yearly_sum.as_secs_f64()),
+        XffValue::from(yearly_sum.as_secs_f64()),
     );
     let current_month = stats
         .get_mut("current_month")
@@ -54,7 +54,7 @@ pub fn calculate_statistics(db_obj: &mut Object) -> &Object {
     current_month.insert("uptime_percent", XffValue::from(this_month_up_perc));
     current_month.insert(
         "total_downtime_seconds",
-        XffValue::from_duration_seconds(montly_sum.as_secs_f64()),
+        XffValue::from(montly_sum.as_secs_f64()),
     );
     let stats_ptr = db_obj.get("statistics").unwrap().as_object().unwrap();
     stats_ptr
@@ -85,7 +85,7 @@ fn get_sums(db_obj: &Object) -> (Duration, Duration, Duration, Utc) {
     let (all_time_sum, yearly_sum, montly_sum) = {
         if let Some(history) = db_obj.get("history") {
             let history = history.as_object().unwrap();
-            let all_time_sum = construct_all_time_sum(&history);
+            let all_time_sum = construct_all_time_sum(history);
             if let Some(year) = history.get(&current_year.to_string()) {
                 let year = year.as_object().unwrap();
                 let yearly_sum = year
@@ -128,11 +128,11 @@ fn get_sums(db_obj: &Object) -> (Duration, Duration, Duration, Utc) {
 /// 1x O(n) where n is the number of years
 fn construct_all_time_sum(history: &Object) -> Duration {
     let mut sum_dur = Duration::ZERO;
-    for (key, value) in history.iter() {
-        if key.contains("sum") {
-            sum_dur += value.into_std_duration().unwrap();
-        } else {
-            continue;
+    for (_key, value) in history.iter() {
+        if let Some(year_obj) = value.as_object() {
+            if let Some(sum) = year_obj.get("yearly_sum_seconds") {
+                sum_dur += sum.into_std_duration().unwrap();
+            }
         }
     }
     sum_dur
