@@ -1,3 +1,4 @@
+use horae::Utc;
 use nabu::{Array, Object, XffValue, serde::write};
 use std::process::Command;
 
@@ -8,7 +9,7 @@ use crate::{
     utils::probe_journal,
 };
 
-pub fn construct_full_database(env: &Environment) -> LasaResult<()> {
+pub fn construct_full_database() -> LasaResult<Object> {
     // 1. Get last reboot output
     let output = Command::new("last")
         .arg("reboot")
@@ -22,7 +23,7 @@ pub fn construct_full_database(env: &Environment) -> LasaResult<()> {
     // 2. Identify the current boot and previous sessions
     // Sessions are returned in reverse chronological order (newest first)
     if sessions.is_empty() {
-        return Ok(());
+        return Err(LasaError::NoData("last reboot output is empty".to_string()));
     }
 
     // Handle crashes and normalization
@@ -60,11 +61,7 @@ pub fn construct_full_database(env: &Environment) -> LasaResult<()> {
     out.insert("history", XffValue::from(history));
     out.insert("statistics", XffValue::from(statistics));
 
-    if let Err(err) = write(&env.data_file_path, XffValue::from(out)) {
-        return Err(LasaError::DataStorage(err.to_string()));
-    } else {
-        Ok(())
-    }
+    Ok(out)
 }
 
 fn make_history_object(sessions: &[Session]) -> Object {
@@ -149,6 +146,19 @@ fn make_history_object(sessions: &[Session]) -> Object {
             "yearly_sum_seconds",
             XffValue::from_duration_seconds(new_sum_yearly),
         );
+    }
+
+    if month_number != 0 {
+        if year_number == 0 {
+            year_number = Utc::now().date().year;
+        }
+        year.insert(month_number.to_string(), XffValue::from(month));
+    }
+
+    if year_number != 0 {
+        history.insert(year_number.to_string(), XffValue::from(year));
+    } else {
+        debug_assert!(false, "No year history - is this ever hit?");
     }
 
     history
