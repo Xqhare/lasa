@@ -20,17 +20,21 @@ pub fn calculate_statistics(db_obj: &mut Object) {
     let this_month_up_perc =
         (1.0 - (montly_sum.as_secs_f64() / this_month_dur.as_secs_f64())) * 100.0;
 
-    let mut stats = db_obj.get_mut("statistics").unwrap().into_object().unwrap();
-    let mut all_time = stats.get_mut("all_time").unwrap().into_object().unwrap();
+    let stats = db_obj
+        .get_mut("statistics")
+        .unwrap()
+        .as_object_mut()
+        .unwrap();
+    let all_time = stats.get_mut("all_time").unwrap().as_object_mut().unwrap();
     all_time.insert("uptime_percent", XffValue::from(all_time_up_perc));
     all_time.insert(
         "total_downtime_seconds",
         XffValue::from_duration_seconds(all_time_sum.as_secs_f64()),
     );
-    let mut current_year = stats
+    let current_year = stats
         .get_mut("current_year")
         .unwrap()
-        .into_object()
+        .as_object_mut()
         .unwrap();
     current_year.insert("year", XffValue::from(today.date().year));
     current_year.insert("uptime_percent", XffValue::from(this_year_up_perc));
@@ -38,10 +42,10 @@ pub fn calculate_statistics(db_obj: &mut Object) {
         "total_downtime_seconds",
         XffValue::from_duration_seconds(yearly_sum.as_secs_f64()),
     );
-    let mut current_month = stats
+    let current_month = stats
         .get_mut("current_month")
         .unwrap()
-        .into_object()
+        .as_object_mut()
         .unwrap();
     current_month.insert("month", XffValue::from(today.date().month));
     current_month.insert("uptime_percent", XffValue::from(this_month_up_perc));
@@ -52,12 +56,12 @@ pub fn calculate_statistics(db_obj: &mut Object) {
 }
 
 /// 1x 2x O(1) lookups
-fn get_first_boot(db_obj: &mut Object) -> Utc {
+fn get_first_boot(db_obj: &Object) -> Utc {
     Utc::from_timestamp(
         db_obj
             .get("metadata")
             .unwrap()
-            .into_object()
+            .as_object()
             .unwrap()
             .get("first_recorded_boot")
             .unwrap()
@@ -67,7 +71,7 @@ fn get_first_boot(db_obj: &mut Object) -> Utc {
 }
 
 /// 3x 1x O(1) lookups
-fn get_sums(db_obj: &mut Object) -> (Duration, Duration, Duration, Utc) {
+fn get_sums(db_obj: &Object) -> (Duration, Duration, Duration, Utc) {
     let (today, current_year, current_month) = {
         let mut today = Utc::now();
         today.with_auto_offset();
@@ -75,10 +79,10 @@ fn get_sums(db_obj: &mut Object) -> (Duration, Duration, Duration, Utc) {
     };
     let (all_time_sum, yearly_sum, montly_sum) = {
         if let Some(history) = db_obj.get("history") {
-            let history = history.into_object().unwrap();
+            let history = history.as_object().unwrap();
             let all_time_sum = construct_all_time_sum(&history);
             if let Some(year) = history.get(&current_year.to_string()) {
-                let year = year.into_object().unwrap();
+                let year = year.as_object().unwrap();
                 let yearly_sum = year
                     .get("yearly_sum_seconds")
                     .unwrap()
@@ -87,7 +91,7 @@ fn get_sums(db_obj: &mut Object) -> (Duration, Duration, Duration, Utc) {
 
                 if let Some(month) = year.get(&current_month.to_string()) {
                     let montly_sum = month
-                        .into_object()
+                        .as_object()
                         .unwrap()
                         .get("montly_sum_seconds")
                         .unwrap()
