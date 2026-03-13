@@ -21,8 +21,6 @@ use crate::error::{LasaError, LasaResult};
 pub struct Environment {
     pub home_dir: PathBuf,
     pub data_file_path: PathBuf,
-    pub heartbeat_path: PathBuf,
-    pub last_shutdown_path: PathBuf,
     pub output_file_path: PathBuf,
     pub human_readable_output_path: PathBuf,
 }
@@ -43,8 +41,6 @@ impl Environment {
             }
         };
         let data_file_path = data_dir.join("lasa_system_uptime.xff");
-        let heartbeat_path = data_dir.join("lasa_heartbeat.xff");
-        let last_shutdown_path = data_dir.join("lasa_last_shutdown.xf");
 
         let output_file_path = home_dir.join("lasa_system_uptime.xff");
         let human_readable_output_path = home_dir.join("lasa_system_uptime.json");
@@ -54,8 +50,6 @@ impl Environment {
             data_file_path,
             output_file_path,
             human_readable_output_path,
-            heartbeat_path,
-            last_shutdown_path,
         })
     }
 }
