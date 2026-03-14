@@ -40,7 +40,7 @@ impl Environment {
                 home.home_dir()
             }
         };
-        let data_file_path = data_dir.join("lasa_system_uptime.xff");
+        let data_file_path = data_dir.join("lasa_system_uptime_db.xff");
 
         let output_file_path = home_dir.join("lasa_system_uptime.xff");
         let human_readable_output_path = home_dir.join("lasa_system_uptime.json");
