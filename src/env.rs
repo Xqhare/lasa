@@ -33,13 +33,7 @@ impl Environment {
         };
 
         let home_dir = home.home_dir().to_owned();
-        let data_dir = {
-            if let Some(dir) = home.runtime_dir() {
-                dir
-            } else {
-                home.home_dir()
-            }
-        };
+        let data_dir = home.cache_dir();
         let data_file_path = data_dir.join("lasa_system_uptime_db.xff");
 
         let output_file_path = home_dir.join("lasa_system_uptime.xff");
