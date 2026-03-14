@@ -35,7 +35,7 @@ pub fn probe_last_reboot() -> LasaResult<Vec<Session>> {
         let offset = i as i32;
         if let SessionEnd::Crash = session.session_end {
             // Probe journal for last breath
-            if let Ok(utc_timestamp) = probe_journal(-(offset + 1)) {
+            if let Ok(utc_timestamp) = probe_journal(-offset) {
                 session.session_end = SessionEnd::Recovered(utc_timestamp);
             }
             // If probe fails, we just keep it as a Crash; we can't do better than that

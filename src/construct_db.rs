@@ -44,22 +44,27 @@ fn make_history_object(sessions: &[Session]) -> Object {
     // year_number = 0 for new construction
     let (mut year, mut year_number): (Object, u16) = new_year();
 
-    for session in sessions.iter() {
+    // Downtime happens BETWEEN sessions.
+    // pair[0] is the later session (up_at), pair[1] is the earlier session (down_at).
+    for pair in sessions.windows(2) {
+        let current = &pair[0];
+        let previous = &pair[1];
+
         let (date_time_down, event_type, down_duration) = {
-            match session.session_end {
-                SessionEnd::StillRunning => continue,
-                SessionEnd::Crash => (session.boot_start, "crash", std::time::Duration::ZERO),
+            match previous.session_end {
+                SessionEnd::StillRunning => unreachable!("Only the first session can be still running"),
+                SessionEnd::Crash => (current.boot_start, "crash", std::time::Duration::ZERO),
                 SessionEnd::Shutdown(utc_timestamp) => {
-                    let duration = if session.boot_start.unix_timestamp() > utc_timestamp.unix_timestamp() {
-                        session.boot_start - utc_timestamp
+                    let duration = if current.boot_start.unix_timestamp() > utc_timestamp.unix_timestamp() {
+                        current.boot_start - utc_timestamp
                     } else {
                         std::time::Duration::ZERO
                     };
                     (utc_timestamp, "reboot", duration)
                 }
                 SessionEnd::Recovered(utc_timestamp) => {
-                    let duration = if session.boot_start.unix_timestamp() > utc_timestamp.unix_timestamp() {
-                        session.boot_start - utc_timestamp
+                    let duration = if current.boot_start.unix_timestamp() > utc_timestamp.unix_timestamp() {
+                        current.boot_start - utc_timestamp
                     } else {
                         std::time::Duration::ZERO
                     };
@@ -96,7 +101,7 @@ fn make_history_object(sessions: &[Session]) -> Object {
         );
         event.insert(
             "up_at",
-            XffValue::from_unix_timestamp(session.boot_start.unix_timestamp()),
+            XffValue::from_unix_timestamp(current.boot_start.unix_timestamp()),
         );
         event.insert(
             "down_duration_sec",
@@ -147,8 +152,6 @@ fn make_history_object(sessions: &[Session]) -> Object {
 
     if year_number != 0 {
         history.insert(year_number.to_string(), XffValue::from(year));
-    } else {
-        debug_assert!(false, "No year history - is this ever hit?");
     }
 
     history
