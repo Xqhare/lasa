@@ -10,7 +10,7 @@ source = "git+https://github.com/xqhare/areia#32f0ab3f7adc21b69590f8692c3b791977
 [[package]]
 name = "athena"
 version = "1.1.0"
-source = "git+https://github.com/xqhare/athena#671ebcddd50c5d54f88f57a4cf4d1cbeea493ccd"
+source = "git+https://github.com/xqhare/athena#13ed6f9b8edfdc4af68f58d79b2dcd0ac58fc116"
 dependencies = [
  "libc",
 ]

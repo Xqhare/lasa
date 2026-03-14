@@ -11,17 +11,37 @@ pub fn calculate_statistics(db_obj: &mut Object) -> &Object {
     let (all_time_sum, yearly_sum, montly_sum, today) = get_sums(db_obj);
 
     let all_time_dur = today - first_recorded_boot;
-    let all_time_up_perc =
-        (1.0 - (all_time_sum.as_secs_f64() / all_time_dur.as_secs_f64())) * 100.0;
+    let all_time_up_perc = if all_time_dur.as_secs_f64() > 0.0 {
+        (1.0 - (all_time_sum.as_secs_f64() / all_time_dur.as_secs_f64())) * 100.0
+    } else {
+        100.0
+    };
 
-    let this_year_dur = today - Utc::from_ymd_hms(today.date().year, 1, 1, 0, 0, 0);
-    let this_year_up_perc =
-        (1.0 - (yearly_sum.as_secs_f64() / this_year_dur.as_secs_f64())) * 100.0;
+    let year_start = Utc::from_ymd_hms(today.date().year, 1, 1, 0, 0, 0);
+    let this_year_start = if first_recorded_boot.unix_timestamp() > year_start.unix_timestamp() {
+        first_recorded_boot
+    } else {
+        year_start
+    };
+    let this_year_dur = today - this_year_start;
+    let this_year_up_perc = if this_year_dur.as_secs_f64() > 0.0 {
+        (1.0 - (yearly_sum.as_secs_f64() / this_year_dur.as_secs_f64())) * 100.0
+    } else {
+        100.0
+    };
 
-    let this_month_dur =
-        today - Utc::from_ymd_hms(today.date().year, today.date().month, 1, 0, 0, 0);
-    let this_month_up_perc =
-        (1.0 - (montly_sum.as_secs_f64() / this_month_dur.as_secs_f64())) * 100.0;
+    let month_start = Utc::from_ymd_hms(today.date().year, today.date().month, 1, 0, 0, 0);
+    let this_month_start = if first_recorded_boot.unix_timestamp() > month_start.unix_timestamp() {
+        first_recorded_boot
+    } else {
+        month_start
+    };
+    let this_month_dur = today - this_month_start;
+    let this_month_up_perc = if this_month_dur.as_secs_f64() > 0.0 {
+        (1.0 - (montly_sum.as_secs_f64() / this_month_dur.as_secs_f64())) * 100.0
+    } else {
+        100.0
+    };
 
     let stats = db_obj
         .get_mut("statistics")
