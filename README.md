@@ -18,7 +18,7 @@ Lasa is a simple rust program to measure and log the system uptime.
 
 ## What data is saved?
 
-The primary database is stored in the user's **Runtime Directory** (e.g. `/run/user/1000/`) for fast, ephemeral access without unnecessary disk I/O.
+The primary database is stored in the user's **Cache Directory** for fast, ephemeral access without unnecessary disk I/O.
 The final statistics are stored in the user's **Home** directory.
 
 ### Provided Statistics
