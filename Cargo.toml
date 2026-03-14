@@ -10,3 +10,10 @@ hades = { git = "https://github.com/xqhare/hades" }
 horae = { git = "https://github.com/xqhare/horae" }
 nabu = { git = "https://github.com/xqhare/nabu" }
 mawu = { git = "https://github.com/xqhare/mawu" }
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+opt-level = "s"
+panic = "abort"
+strip = "symbols"
