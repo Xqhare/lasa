@@ -78,7 +78,7 @@ fn make_history_object(sessions: &[Session]) -> Object {
         if year_number == 0 {
             year_number = date_time_down.date().year;
         } else if year_number != date_time_down.date().year {
-            history.insert(date_time_down.date().year.to_string(), XffValue::from(year));
+            history.insert(year_number.to_string(), XffValue::from(year));
             (year, _) = new_year();
             year_number = date_time_down.date().year;
         }
@@ -87,7 +87,7 @@ fn make_history_object(sessions: &[Session]) -> Object {
             month_number = date_time_down.date().month;
         } else if month_number != date_time_down.date().month {
             year.insert(
-                date_time_down.date().month.to_string(),
+                month_number.to_string(),
                 XffValue::from(month),
             );
             (month, _) = new_month();
