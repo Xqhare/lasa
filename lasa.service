@@ -1,0 +1,13 @@
+[Unit]
+Description=Lasa System Uptime Attendant
+After=systemd-journald.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/lasa
+CPUSchedulingPolicy=batch
+Nice=19
+
+[Install]
+WantedBy=default.target
+
