@@ -8,7 +8,7 @@ use nabu::{Object, XffValue};
 /// Returns a reference to the statistics object
 pub fn calculate_statistics(db_obj: &mut Object) -> &Object {
     let first_recorded_boot = get_first_boot(db_obj);
-    let (all_time_sum, yearly_sum, montly_sum, today) = get_sums(db_obj);
+    let (all_time_sum, yearly_sum, monthly_sum, today) = get_sums(db_obj);
 
     let all_time_dur = today - first_recorded_boot;
     let all_time_up_perc = if all_time_dur.as_secs_f64() > 0.0 {
@@ -38,7 +38,7 @@ pub fn calculate_statistics(db_obj: &mut Object) -> &Object {
     };
     let this_month_dur = today - this_month_start;
     let this_month_up_perc = if this_month_dur.as_secs_f64() > 0.0 {
-        (1.0 - (montly_sum.as_secs_f64() / this_month_dur.as_secs_f64())) * 100.0
+        (1.0 - (monthly_sum.as_secs_f64() / this_month_dur.as_secs_f64())) * 100.0
     } else {
         100.0
     };
@@ -74,7 +74,7 @@ pub fn calculate_statistics(db_obj: &mut Object) -> &Object {
     current_month.insert("uptime_percent", XffValue::from(this_month_up_perc));
     current_month.insert(
         "total_downtime_seconds",
-        XffValue::from(montly_sum.as_secs_f64()),
+        XffValue::from(monthly_sum.as_secs_f64()),
     );
     let stats_ptr = db_obj.get("statistics").unwrap().as_object().unwrap();
     stats_ptr
@@ -102,7 +102,7 @@ fn get_sums(db_obj: &Object) -> (Duration, Duration, Duration, Utc) {
         today.with_auto_offset();
         (today, today.date().year, today.date().month)
     };
-    let (all_time_sum, yearly_sum, montly_sum) = {
+    let (all_time_sum, yearly_sum, monthly_sum) = {
         if let Some(history) = db_obj.get("history") {
             let history = history.as_object().unwrap();
             let all_time_sum = construct_all_time_sum(history);
@@ -117,16 +117,16 @@ fn get_sums(db_obj: &Object) -> (Duration, Duration, Duration, Utc) {
                     .unwrap());
 
                 if let Some(month) = year.get(&current_month.to_string()) {
-                    let montly_sum = Duration::from_secs_f64(month
+                    let monthly_sum = Duration::from_secs_f64(month
                         .as_object()
                         .unwrap()
-                        .get("montly_sum_seconds")
+                        .get("monthly_sum_seconds")
                         .unwrap()
                         .into_number()
                         .unwrap()
                         .into_f64()
                         .unwrap());
-                    (all_time_sum, yearly_sum, montly_sum)
+                    (all_time_sum, yearly_sum, monthly_sum)
                 } else {
                     // Today's month has no data - new month with no boot yet or something went terribly wrong
                     // Assumed edge case - just set to 0 seconds.
@@ -146,7 +146,7 @@ fn get_sums(db_obj: &Object) -> (Duration, Duration, Duration, Utc) {
         }
     };
 
-    (all_time_sum, yearly_sum, montly_sum, today)
+    (all_time_sum, yearly_sum, monthly_sum, today)
 }
 
 /// 1x O(n) where n is the number of years

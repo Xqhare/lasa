@@ -109,8 +109,8 @@ fn make_history_object(sessions: &[Session]) -> Object {
         );
         event.insert("type", XffValue::from(event_type));
 
-        let new_sum_montly = month
-            .get("montly_sum_seconds")
+        let new_sum_monthly = month
+            .get("monthly_sum_seconds")
             .unwrap()
             .into_number()
             .unwrap()
@@ -134,8 +134,8 @@ fn make_history_object(sessions: &[Session]) -> Object {
             .unwrap()
             .push(XffValue::from(event));
         month.insert(
-            "montly_sum_seconds",
-            XffValue::from(new_sum_montly),
+            "monthly_sum_seconds",
+            XffValue::from(new_sum_monthly),
         );
         year.insert(
             "yearly_sum_seconds",

@@ -78,7 +78,7 @@ pub fn update_database(env: &Environment) -> LasaResult<Object> {
                 month.as_object_mut().unwrap()
             } else {
                 let (mut month, _) = new_month();
-                month.insert("montly_sum_seconds", XffValue::from(0.0));
+                month.insert("monthly_sum_seconds", XffValue::from(0.0));
                 year.insert(
                     date_time_down.date().month.to_string(),
                     XffValue::from(month),
@@ -90,8 +90,8 @@ pub fn update_database(env: &Environment) -> LasaResult<Object> {
             }
         };
 
-        let new_sum_montly = month
-            .get("montly_sum_seconds")
+        let new_sum_monthly = month
+            .get("monthly_sum_seconds")
             .unwrap()
             .into_number()
             .unwrap()
@@ -122,8 +122,8 @@ pub fn update_database(env: &Environment) -> LasaResult<Object> {
             .push(XffValue::from(event));
 
         month.insert(
-            "montly_sum_seconds",
-            XffValue::from(new_sum_montly),
+            "monthly_sum_seconds",
+            XffValue::from(new_sum_monthly),
         );
         year.insert(
             "yearly_sum_seconds",
