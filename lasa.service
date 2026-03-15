@@ -4,6 +4,7 @@ After=systemd-journald.service
 
 [Service]
 Type=oneshot
+# Change the path below to the directory containing the executable
 ExecStart=/usr/bin/lasa
 CPUSchedulingPolicy=batch
 Nice=19
