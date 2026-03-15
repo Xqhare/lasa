@@ -55,7 +55,7 @@ pub fn new_year() -> (Object, u16) {
 pub fn new_month() -> (Object, u8) {
     let mut month = Object::new();
     month.insert("events", XffValue::from(Array::new()));
-    month.insert("montly_sum_seconds", XffValue::from(0.0));
+    month.insert("monthly_sum_seconds", XffValue::from(0.0));
     (month, 0)
 }
 
